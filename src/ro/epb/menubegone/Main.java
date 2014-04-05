@@ -1,19 +1,56 @@
 package ro.epb.menubegone;
 
 import java.lang.reflect.Field;
+import java.util.Set;
+import java.util.TreeSet;
 
 import android.view.KeyEvent;
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-public class Main implements IXposedHookLoadPackage {
+public class Main implements IXposedHookLoadPackage , IXposedHookZygoteInit {
+
+	static final String PREF_FILE = "preferences";
+	static final String PREF_BLACKLIST = "blacklist";
+
+
+	private Set<String> blacklist;
+	@Override
+	public void initZygote(StartupParam startupParam) throws Throwable {
+		
+//		if(blacklist.isEmpty())
+//			Logger.Log("blacklist is empty");
+//		for (String string : blacklist) {
+//			Logger.Log(string);
+//		}
+
+	}
 
 	@Override
-	public void handleLoadPackage(final LoadPackageParam packageParam) throws Throwable {
+	public void handleLoadPackage(LoadPackageParam packageParam) throws Throwable {
+		XSharedPreferences prefs = new XSharedPreferences(Main.class.getPackage().getName(), PREF_FILE);
+		blacklist = prefs.getStringSet(PREF_BLACKLIST, new TreeSet<String>());
+		if(!blacklist.contains(packageParam.packageName)){
+			Logger.Log("run");
+			hookAppProcess(packageParam);
+		}
+		else{
+			Logger.Log("ignore " + packageParam.packageName);
+		}
 
+		if (packageParam.packageName.equals("android"))
+			hookAndroidProcess(packageParam);
+
+
+	}
+
+	private void hookAppProcess(LoadPackageParam packageParam){
+		Logger.Log("hook: " + packageParam.packageName);
 		XposedHelpers.findAndHookMethod("com.android.internal.view.ActionBarPolicy", packageParam.classLoader, "showsOverflowMenuButton",new XC_MethodHook() {
 			@Override
 			protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -27,11 +64,10 @@ public class Main implements IXposedHookLoadPackage {
 				param.setResult(Boolean.valueOf(false));
 			}
 		});
+	}
 
-		if (!packageParam.packageName.equals("android"))
-			return;
-
-		XposedBridge.log("Loaded sys app(package: android)");
+	private void hookAndroidProcess(LoadPackageParam packageParam){
+		Logger.Log("Loaded sys app(package: android)");
 
 		//this is how you hook overrides
 		Class<?> PhoneWindowManager = XposedHelpers.findClass("com.android.internal.policy.impl.PhoneWindowManager", packageParam.classLoader);

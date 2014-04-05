@@ -1,0 +1,8 @@
+public class Settings {
+	public List<String> blacklist;
+	public boolean showOverflow;
+	public boolean remapMenu;
+	public boolean remapMenuLongPress;
+}
+
+todo: disable for people who dont have menu button
