@@ -1,7 +1,9 @@
-package ro.epb.menubegone;
+package ro.epb.menubegone.settings;
 
 import java.util.List;
 
+import ro.epb.menubegone.R;
+import ro.epb.menubegone.core.Logger;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -17,22 +19,20 @@ import android.widget.TextView;
 
 public class AppListAdapter extends BaseAdapter {
 
-
-
 	private PackageManager packageManager;
 	private LayoutInflater inflater;
 	private List<PackageInfo> packages;
+
 	public AppListAdapter(Context context) {
 		packageManager = context.getPackageManager();
-		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		inflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		loadPackages();
 	}
 
-
 	@Override
 	public int getCount() {
-		if(packages == null)
-		{
+		if (packages == null) {
 			return 0;
 		}
 		return packages.size();
@@ -43,18 +43,17 @@ public class AppListAdapter extends BaseAdapter {
 		return packages.get(position).applicationInfo;
 	}
 
-	public int getPosition(String packageName){
-		if(packages != null)
-		{
+	public int getPosition(String packageName) {
+		if (packages != null) {
 			for (int i = 0; i < getCount(); i++) {
 				ApplicationInfo app = getItem(i);
-				if(packageName.equals(app.packageName))
+				if (packageName.equals(app.packageName))
 					return i;
 			}
 		}
-		return -1;		
+		return -1;
 	}
-	
+
 	@Override
 	public long getItemId(int position) {
 		return position;
@@ -62,17 +61,19 @@ public class AppListAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		if(convertView == null)
-		{
+		if (convertView == null) {
 			Logger.Log("Load " + position);
-			convertView = inflater.inflate(R.layout.cell, null);	
-			final ApplicationInfo app = getItem(position);			
-			final TextView nameView = (TextView) convertView.findViewById(R.id.name);
-			final ImageView iconView = (ImageView) convertView.findViewById(R.id.icon);
+			convertView = inflater.inflate(R.layout.cell, null);
+			final ApplicationInfo app = getItem(position);
+			final TextView nameView = (TextView) convertView
+					.findViewById(R.id.name);
+			final ImageView iconView = (ImageView) convertView
+					.findViewById(R.id.icon);
 			nameView.setText(app.packageName);
-			new AsyncTask<Void, Void, Void>(){
+			new AsyncTask<Void, Void, Void>() {
 				Drawable icon;
 				CharSequence name;
+
 				@Override
 				protected Void doInBackground(Void... params) {
 					name = packageManager.getApplicationLabel(app);
@@ -81,12 +82,12 @@ public class AppListAdapter extends BaseAdapter {
 				}
 
 				@Override
-				protected void onPostExecute(Void result) {					
+				protected void onPostExecute(Void result) {
 					nameView.setText(name);
 					iconView.setImageDrawable(icon);
 				}
 			}.execute();
-			
+
 		}
 		return convertView;
 	}
@@ -96,12 +97,10 @@ public class AppListAdapter extends BaseAdapter {
 		return position;
 	}
 
-
 	@Override
 	public int getViewTypeCount() {
 		return packages.size();
 	}
-
 
 	public void loadPackages() {
 		packages = packageManager.getInstalledPackages(0);

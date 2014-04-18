@@ -3,7 +3,7 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ro.epb.menubegone.MainActivity"
+    tools:context="ro.epb.menubegone.settings.MainActivity"
     tools:ignore="MergeRootFrame" >
 
     <ListView

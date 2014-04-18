@@ -1,8 +1,10 @@
-package ro.epb.menubegone;
+package ro.epb.menubegone.settings;
 
 import java.util.Set;
 import java.util.TreeSet;
 
+import ro.epb.menubegone.R;
+import ro.epb.menubegone.core.Constants;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,57 +19,55 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private AppListAdapter adapter;
 	private Set<String> blackPackages;
 	private SharedPreferences preferences;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		preferences = getSharedPreferences(Main.PREF_FILE, Context.MODE_WORLD_READABLE);
-		
-		blackPackages = preferences.getStringSet(Main.PREF_BLACKLIST, new TreeSet<String>());
-		blackPackages = new TreeSet<String>(blackPackages);//this is a fix for an android bug
-		//http://androiddev.orkitra.com/?p=7297
-		
+		preferences = getSharedPreferences(Constants.PREF_FILE,
+				Context.MODE_WORLD_READABLE);
+
+		blackPackages = preferences.getStringSet(Constants.PREF_BLACKLIST,
+				new TreeSet<String>());
+		blackPackages = new TreeSet<String>(blackPackages);
+		// this is a fix for an android bug
+		// http://androiddev.orkitra.com/?p=7297
 
 		appList = (ListView) findViewById(R.id.app_list);
 		adapter = new AppListAdapter(this);
 		appList.setAdapter(adapter);
 		appList.setOnItemClickListener(this);
-		
+
 		for (String packageName : blackPackages) {
 			int position = adapter.getPosition(packageName);
-			if(position>=0)
+			if (position >= 0)
 				appList.setItemChecked(position, true);
 		}
 
-	}
-	
-	void refresh(){
-		
 	}
 
 	/**
 	 * updatePreference
 	 */
 	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
 		String packageName = adapter.getItem(position).packageName;
-		boolean isChecked = appList.getCheckedItemPositions().get(position, false);
-		if(isChecked)		
-			blackPackages.add(packageName);		
+		boolean isChecked = appList.getCheckedItemPositions().get(position,
+				false);
+		if (isChecked)
+			blackPackages.add(packageName);
 		else
 			blackPackages.remove(packageName);
-		
-		
+
 	}
 
 	@Override
 	protected void onPause() {
-		super.onPause();		
-		preferences.edit().putStringSet(Main.PREF_BLACKLIST, blackPackages).apply();
+		super.onPause();
+		preferences.edit()
+				.putStringSet(Constants.PREF_BLACKLIST, blackPackages).apply();
 	}
-
-
 
 }
