@@ -82,7 +82,7 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 		XposedBridge.hookAllMethods(PhoneWindowManager,
 				"interceptKeyBeforeDispatching", new XC_MethodHook() {
 
-					boolean nextTimeOpenMenu = false;
+					boolean oldDown = false;
 
 					@Override
 					protected void beforeHookedMethod(MethodHookParam param)
@@ -103,19 +103,26 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 						if (remapLong) {
 							if (down) {
 								if (longPress) {
-									nextTimeOpenMenu = false;
+									oldDown = false;
 									injectMenuKey();
 								} else {
-									nextTimeOpenMenu = true;
+									oldDown = true;
 								}
-							} else if (nextTimeOpenMenu) {
+							} else if (oldDown) {
 								XposedHelpers.callMethod(param.thisObject,
 										"toggleRecentApps");
-								nextTimeOpenMenu = false;
+								oldDown = false;
 							}
-						} else
-							XposedHelpers.callMethod(param.thisObject,
-									"toggleRecentApps");
+						} else {
+							if (!oldDown && down && !longPress){
+								XposedHelpers.callMethod(param.thisObject,
+										"toggleRecentApps");
+								oldDown = true;
+							}
+							if(!down)
+								oldDown = false;
+						}
+
 						param.setResult(Long.valueOf(-1));
 						// return value 0 makes the dispatcher share the key
 						// with an app
