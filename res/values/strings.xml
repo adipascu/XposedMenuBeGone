@@ -3,7 +3,14 @@
 
     <string name="app_name">MenuBeGone</string>
     <string name="app_desc">Replace the menu button with the task switcher, functionality is identical to the galaxy S5</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="thank_you">Thank you for using this tweak, more stuff to come in the future !</string>
+
+    <!-- other stuff -->
+    <string name="white_list">Edit overflow menu white list</string>
+    <string name="white_list_disclaimer">Select what apps should have the action overflow button shown on screen.
+        The action overflow button looks like <a href="https://i.imgur.com/JZVCD9b.png">this</a></string>
+    <string name="long_press">Remap long pressing the menu key back to opening the menu</string>
+    <string name="long_press_disclaimer">This is useful for legacy apps that have no on screen menu button or if the app is not on the MenuBeGone white list (see above)</string>
+    <string name="restart_disclaimer">All changes require the device to be restarted (an xposed framework soft restart will suffice)</string>
 
 </resources>

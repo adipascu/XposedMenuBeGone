@@ -5,16 +5,16 @@ import java.util.TreeSet;
 
 import ro.epb.menubegone.R;
 import ro.epb.menubegone.core.Constants;
-import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
-public class MainActivity extends Activity implements OnItemClickListener {
+public class BlackListActivity extends FragmentActivity implements
+		OnItemClickListener {
 	private ListView appList;
 	private AppListAdapter adapter;
 	private Set<String> blackPackages;
@@ -23,10 +23,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.blacklist_activity);
 
-		preferences = getSharedPreferences(Constants.PREF_FILE,
-				Context.MODE_WORLD_READABLE);
+		preferences = PreferencesHelper.getPreferences(this);
 
 		blackPackages = preferences.getStringSet(Constants.PREF_BLACKLIST,
 				new TreeSet<String>());

@@ -63,7 +63,7 @@ public class AppListAdapter extends BaseAdapter {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		if (convertView == null) {
 			Logger.Log("Load " + position);
-			convertView = inflater.inflate(R.layout.cell, null);
+			convertView = inflater.inflate(R.layout.blacklist_cell, null);
 			final ApplicationInfo app = getItem(position);
 			final TextView nameView = (TextView) convertView
 					.findViewById(R.id.name);
