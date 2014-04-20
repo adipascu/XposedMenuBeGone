@@ -104,19 +104,17 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 							if (down) {
 								if (longPress) {
 									oldDown = false;
-									injectMenuKey();
+									injectKey(KeyEvent.KEYCODE_MENU);
 								} else {
 									oldDown = true;
 								}
 							} else if (oldDown) {
-								XposedHelpers.callMethod(param.thisObject,
-										"toggleRecentApps");
+								injectKey(KeyEvent.KEYCODE_APP_SWITCH);
 								oldDown = false;
 							}
 						} else {
 							if (!oldDown && down && !longPress){
-								XposedHelpers.callMethod(param.thisObject,
-										"toggleRecentApps");
+								injectKey(KeyEvent.KEYCODE_APP_SWITCH);
 								oldDown = true;
 							}
 							if(!down)
@@ -135,12 +133,12 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 				});
 	}
 
-	protected void injectMenuKey() {
+	protected void injectKey(int keycode) {
 		InputManager inputManager = (InputManager) XposedHelpers
 				.callStaticMethod(InputManager.class, "getInstance");
 		long now = SystemClock.uptimeMillis();
 		final KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
-				KeyEvent.KEYCODE_MENU, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD,
+				keycode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD,
 				0, KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_KEYBOARD);
 		final KeyEvent upEvent = KeyEvent.changeAction(downEvent,
 				KeyEvent.ACTION_UP);
