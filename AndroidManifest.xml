@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ro.epb.menubegone"
-    android:versionCode="3"
-    android:versionName="1.2a" >
+    android:versionCode="4"
+    android:versionName="1.2b" >
 
     <uses-sdk
         android:minSdkVersion="16"
@@ -29,7 +29,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
             </intent-filter>
         </activity>
         <activity
