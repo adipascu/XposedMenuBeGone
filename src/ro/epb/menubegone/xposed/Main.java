@@ -1,10 +1,7 @@
 package ro.epb.menubegone.xposed;
 
-import java.util.Set;
-import java.util.TreeSet;
-
-import ro.epb.menubegone.core.Constants;
-import ro.epb.menubegone.core.Logger;
+import android.content.Context;
+import android.content.Intent;
 import android.hardware.input.InputManager;
 import android.os.SystemClock;
 import android.view.InputDevice;
@@ -17,6 +14,13 @@ import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
+import ro.epb.menubegone.core.Constants;
+import ro.epb.menubegone.core.Logger;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
@@ -70,7 +74,7 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 				});
 	}
 
-	private void hookAndroidProcess(LoadPackageParam packageParam) {
+	private void hookAndroidProcess(final LoadPackageParam packageParam) {
 
 		Logger.Log("Loaded sys app(package: android)");
 
@@ -104,20 +108,21 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 							if (down) {
 								if (longPress) {
 									oldDown = false;
-									injectKey(KeyEvent.KEYCODE_MENU);
+									injectKey(KeyEvent.KEYCODE_MENU, null);
 								} else {
 									oldDown = true;
 								}
 							} else if (oldDown) {
-								injectKey(KeyEvent.KEYCODE_APP_SWITCH);
+								injectKey(KeyEvent.KEYCODE_APP_SWITCH, param.thisObject);
 								oldDown = false;
 							}
 						} else {
-							if (!oldDown && down && !longPress){
-								injectKey(KeyEvent.KEYCODE_APP_SWITCH);
+							if (!oldDown && down && !longPress) {
+								injectKey(KeyEvent.KEYCODE_APP_SWITCH, param.thisObject);
 								oldDown = true;
+								toggleRecent(param);
 							}
-							if(!down)
+							if (!down)
 								oldDown = false;
 						}
 
@@ -133,24 +138,49 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 				});
 	}
 
-	protected void injectKey(int keycode) {
-		InputManager inputManager = (InputManager) XposedHelpers
-				.callStaticMethod(InputManager.class, "getInstance");
-		long now = SystemClock.uptimeMillis();
-		final KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
-				keycode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD,
-				0, KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_KEYBOARD);
-		final KeyEvent upEvent = KeyEvent.changeAction(downEvent,
-				KeyEvent.ACTION_UP);
+	protected void injectKey(int keycode, Object phoneWindowManagerInstance) {
+		if (keycode != KeyEvent.KEYCODE_APP_SWITCH) {
+			InputManager inputManager = (InputManager) XposedHelpers
+					.callStaticMethod(InputManager.class, "getInstance");
+			long now = SystemClock.uptimeMillis();
+			final KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+					keycode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD,
+					0, KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_KEYBOARD);
+			final KeyEvent upEvent = KeyEvent.changeAction(downEvent,
+					KeyEvent.ACTION_UP);
 
-		Integer INJECT_INPUT_EVENT_MODE_ASYNC = XposedHelpers
-				.getStaticIntField(InputManager.class,
-						"INJECT_INPUT_EVENT_MODE_ASYNC");
+			Integer INJECT_INPUT_EVENT_MODE_ASYNC = XposedHelpers
+					.getStaticIntField(InputManager.class,
+							"INJECT_INPUT_EVENT_MODE_ASYNC");
 
-		XposedHelpers.callMethod(inputManager, "injectInputEvent", downEvent,
-				INJECT_INPUT_EVENT_MODE_ASYNC);
-		XposedHelpers.callMethod(inputManager, "injectInputEvent", upEvent,
-				INJECT_INPUT_EVENT_MODE_ASYNC);
+			XposedHelpers.callMethod(inputManager, "injectInputEvent", downEvent,
+					INJECT_INPUT_EVENT_MODE_ASYNC);
+			XposedHelpers.callMethod(inputManager, "injectInputEvent", upEvent,
+					INJECT_INPUT_EVENT_MODE_ASYNC);
+		} else {
+			toggleRecent(phoneWindowManagerInstance);
+		}
 
+	}
+
+	private void toggleRecent(Object phoneWindowManagerInstance) {
+		Intent i = new Intent();
+		i.setClassName("com.android.systemui", "com.android.systemui.recent.RecentsActivity");
+		i.setAction("com.android.systemui.recent.action.TOGGLE_RECENTS");
+		i.addCategory(Intent.CATEGORY_DEFAULT);
+		i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+				Intent.FLAG_ACTIVITY_NEW_TASK |
+				Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS |
+				Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+		i.putExtra("com.android.systemui.recent.WAITING_FOR_WINDOW_ANIMATION", true);
+
+		try {
+			Context mContext = (Context) XposedHelpers.getObjectField(phoneWindowManagerInstance, "mContext");
+			mContext.startActivity(i);
+		} catch (Exception ex) {
+			StringWriter errors = new StringWriter();
+			ex.printStackTrace(new PrintWriter(errors));
+			Logger.Log("dispatch app_switch failed \n" + errors.toString());
+		}
 	}
 }
